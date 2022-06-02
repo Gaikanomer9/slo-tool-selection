@@ -1,0 +1,10 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: rpc-app
+spec:
+  selector:
+    matchLabels:
+      app: rpc-app
+  podMetricsEndpoints:
+  - port: web 

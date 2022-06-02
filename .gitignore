@@ -1,0 +1,7 @@
+.envrc
+.kubeconfig
+observatorium/
+kube-prometheus/
+prometheus-operator/
+pyrra/
+sloth/
