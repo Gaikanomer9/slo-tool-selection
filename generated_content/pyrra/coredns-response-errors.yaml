@@ -1,0 +1,117 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  creationTimestamp: "2022-06-03T14:57:09Z"
+  generation: 1
+  labels:
+    prometheus: k8s
+    role: alert-rules
+  name: coredns-response-errors
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: pyrra.dev/v1alpha1
+    controller: true
+    kind: ServiceLevelObjective
+    name: coredns-response-errors
+    uid: a56b65a7-2269-4b4c-83e2-6d9bceb3473b
+  resourceVersion: "26866"
+  uid: 0511c0e1-05f7-41cb-ba0d-cd072ffb1966
+spec:
+  groups:
+  - interval: 1m30s
+    name: coredns-response-errors-increase
+    rules:
+    - expr: sum by(rcode) (increase(coredns_dns_responses_total{job="coredns"}[2w]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:increase2w
+  - interval: 30s
+    name: coredns-response-errors
+    rules:
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[3m]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[3m]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate3m
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[15m]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[15m]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate15m
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[30m]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[30m]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate30m
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[1h]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[1h]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate1h
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[3h]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[3h]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate3h
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[12h]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[12h]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate12h
+    - expr: sum(rate(coredns_dns_responses_total{job="coredns",rcode="SERVFAIL"}[2d]))
+        / sum(rate(coredns_dns_responses_total{job="coredns"}[2d]))
+      labels:
+        job: coredns
+        slo: coredns-response-errors
+      record: coredns_dns_responses:burnrate2d
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_responses:burnrate3m{job="coredns",slo="coredns-response-errors"}
+        > (14 * (1-0.9998999999999999)) and coredns_dns_responses:burnrate30m{job="coredns",slo="coredns-response-errors"}
+        > (14 * (1-0.9998999999999999))
+      for: 1m
+      labels:
+        job: coredns
+        long: 30m
+        severity: critical
+        short: 3m
+        slo: coredns-response-errors
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_responses:burnrate15m{job="coredns",slo="coredns-response-errors"}
+        > (7 * (1-0.9998999999999999)) and coredns_dns_responses:burnrate3h{job="coredns",slo="coredns-response-errors"}
+        > (7 * (1-0.9998999999999999))
+      for: 8m
+      labels:
+        job: coredns
+        long: 3h
+        severity: critical
+        short: 15m
+        slo: coredns-response-errors
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_responses:burnrate1h{job="coredns",slo="coredns-response-errors"}
+        > (2 * (1-0.9998999999999999)) and coredns_dns_responses:burnrate12h{job="coredns",slo="coredns-response-errors"}
+        > (2 * (1-0.9998999999999999))
+      for: 30m
+      labels:
+        job: coredns
+        long: 12h
+        severity: warning
+        short: 1h
+        slo: coredns-response-errors
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_responses:burnrate3h{job="coredns",slo="coredns-response-errors"}
+        > (1 * (1-0.9998999999999999)) and coredns_dns_responses:burnrate2d{job="coredns",slo="coredns-response-errors"}
+        > (1 * (1-0.9998999999999999))
+      for: 1h30m
+      labels:
+        job: coredns
+        long: 2d
+        severity: warning
+        short: 3h
+        slo: coredns-response-errors

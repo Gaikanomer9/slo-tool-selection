@@ -1,0 +1,117 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  creationTimestamp: "2022-06-03T14:57:09Z"
+  generation: 1
+  labels:
+    prometheus: k8s
+    role: alert-rules
+  name: apiserver-read-response-errors
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: pyrra.dev/v1alpha1
+    controller: true
+    kind: ServiceLevelObjective
+    name: apiserver-read-response-errors
+    uid: 797cbb42-5925-41e2-bf11-20389df5fb3a
+  resourceVersion: "26868"
+  uid: 082335d5-452a-4e81-b8c0-f8390fe4717a
+spec:
+  groups:
+  - interval: 1m30s
+    name: apiserver-read-response-errors-increase
+    rules:
+    - expr: sum by(code, verb) (increase(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[2w]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:increase2w
+  - interval: 30s
+    name: apiserver-read-response-errors
+    rules:
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[3m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[3m]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate3m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[15m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[15m]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate15m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[30m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[30m]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate30m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[1h]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[1h]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate1h
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[3h]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[3h]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate3h
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[12h]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[12h]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate12h
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"LIST|GET"}[2d]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"LIST|GET"}[2d]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-response-errors
+      record: apiserver_request:burnrate2d
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate3m{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (14 * (1-0.9998999999999999)) and apiserver_request:burnrate30m{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (14 * (1-0.9998999999999999))
+      for: 1m
+      labels:
+        job: apiserver
+        long: 30m
+        severity: critical
+        short: 3m
+        slo: apiserver-read-response-errors
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate15m{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (7 * (1-0.9998999999999999)) and apiserver_request:burnrate3h{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (7 * (1-0.9998999999999999))
+      for: 8m
+      labels:
+        job: apiserver
+        long: 3h
+        severity: critical
+        short: 15m
+        slo: apiserver-read-response-errors
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate1h{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (2 * (1-0.9998999999999999)) and apiserver_request:burnrate12h{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (2 * (1-0.9998999999999999))
+      for: 30m
+      labels:
+        job: apiserver
+        long: 12h
+        severity: warning
+        short: 1h
+        slo: apiserver-read-response-errors
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate3h{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (1 * (1-0.9998999999999999)) and apiserver_request:burnrate2d{job="apiserver",slo="apiserver-read-response-errors",verb=~"LIST|GET"}
+        > (1 * (1-0.9998999999999999))
+      for: 1h30m
+      labels:
+        job: apiserver
+        long: 2d
+        severity: warning
+        short: 3h
+        slo: apiserver-read-response-errors

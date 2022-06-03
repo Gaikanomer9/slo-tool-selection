@@ -1,0 +1,117 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  creationTimestamp: "2022-06-03T14:57:10Z"
+  generation: 1
+  labels:
+    prometheus: k8s
+    role: alert-rules
+  name: apiserver-write-response-errors
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: pyrra.dev/v1alpha1
+    controller: true
+    kind: ServiceLevelObjective
+    name: apiserver-write-response-errors
+    uid: 556f7198-1050-409d-bebd-4f903288df25
+  resourceVersion: "26870"
+  uid: 873567c8-88d0-4cd9-8e62-1ea5095cc180
+spec:
+  groups:
+  - interval: 1m
+    name: apiserver-write-response-errors-increase
+    rules:
+    - expr: sum by(code, verb) (increase(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1w]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:increase1w
+  - interval: 30s
+    name: apiserver-write-response-errors
+    rules:
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1m]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate1m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[8m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[8m]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate8m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[15m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[15m]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate15m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[30m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[30m]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate30m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1h30m]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1h30m]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate1h30m
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[6h]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[6h]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate6h
+    - expr: sum by(verb) (rate(apiserver_request_total{code=~"5..",job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1d]))
+        / sum by(verb) (rate(apiserver_request_total{job="apiserver",verb=~"POST|PUT|PATCH|DELETE"}[1d]))
+      labels:
+        job: apiserver
+        slo: apiserver-write-response-errors
+      record: apiserver_request:burnrate1d
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate1m{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (14 * (1-0.99)) and apiserver_request:burnrate15m{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (14 * (1-0.99))
+      for: 1m
+      labels:
+        job: apiserver
+        long: 15m
+        severity: critical
+        short: 1m
+        slo: apiserver-write-response-errors
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate8m{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (7 * (1-0.99)) and apiserver_request:burnrate1h30m{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (7 * (1-0.99))
+      for: 4m
+      labels:
+        job: apiserver
+        long: 1h30m
+        severity: critical
+        short: 8m
+        slo: apiserver-write-response-errors
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate30m{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (2 * (1-0.99)) and apiserver_request:burnrate6h{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (2 * (1-0.99))
+      for: 15m
+      labels:
+        job: apiserver
+        long: 6h
+        severity: warning
+        short: 30m
+        slo: apiserver-write-response-errors
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request:burnrate1h30m{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (1 * (1-0.99)) and apiserver_request:burnrate1d{job="apiserver",slo="apiserver-write-response-errors",verb=~"POST|PUT|PATCH|DELETE"}
+        > (1 * (1-0.99))
+      for: 45m
+      labels:
+        job: apiserver
+        long: 1d
+        severity: warning
+        short: 1h30m
+        slo: apiserver-write-response-errors

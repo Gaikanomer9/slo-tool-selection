@@ -1,0 +1,130 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  creationTimestamp: "2022-06-03T14:57:10Z"
+  generation: 1
+  labels:
+    prometheus: k8s
+    role: alert-rules
+  name: apiserver-read-resource-request-latency
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: pyrra.dev/v1alpha1
+    controller: true
+    kind: ServiceLevelObjective
+    name: apiserver-read-resource-request-latency
+    uid: affc5167-30f4-4931-b169-17101964ecc2
+  resourceVersion: "26872"
+  uid: 969e0e8a-d73b-42aa-bfa4-42c606f537c8
+spec:
+  groups:
+  - interval: 1m30s
+    name: apiserver-read-resource-request-latency-increase
+    rules:
+    - expr: sum by(scope, verb) (increase(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[2w]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:increase2w
+    - expr: sum by(scope, verb) (increase(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[2w]))
+      labels:
+        job: apiserver
+        le: "1"
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:increase2w
+  - interval: 30s
+    name: apiserver-read-resource-request-latency
+    rules:
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[3m]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[3m])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[3m]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate3m
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[15m]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[15m])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[15m]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate15m
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[30m]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[30m])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[30m]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate30m
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[1h]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[1h])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[1h]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate1h
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[3h]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[3h])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[3h]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate3h
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[12h]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[12h])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[12h]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate12h
+    - expr: (sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[2d]))
+        - sum by(scope, verb) (rate(apiserver_request_duration_seconds_bucket{job="apiserver",le="1",scope=~"resource|",verb=~"LIST|GET"}[2d])))
+        / sum by(scope, verb) (rate(apiserver_request_duration_seconds_count{job="apiserver",scope=~"resource|",verb=~"LIST|GET"}[2d]))
+      labels:
+        job: apiserver
+        slo: apiserver-read-resource-request-latency
+      record: apiserver_request_duration_seconds:burnrate2d
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request_duration_seconds:burnrate3m{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (14 * (1-0.99)) and apiserver_request_duration_seconds:burnrate30m{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (14 * (1-0.99))
+      for: 1m
+      labels:
+        job: apiserver
+        long: 30m
+        severity: critical
+        short: 3m
+        slo: apiserver-read-resource-request-latency
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request_duration_seconds:burnrate15m{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (7 * (1-0.99)) and apiserver_request_duration_seconds:burnrate3h{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (7 * (1-0.99))
+      for: 8m
+      labels:
+        job: apiserver
+        long: 3h
+        severity: critical
+        short: 15m
+        slo: apiserver-read-resource-request-latency
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request_duration_seconds:burnrate1h{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (2 * (1-0.99)) and apiserver_request_duration_seconds:burnrate12h{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (2 * (1-0.99))
+      for: 30m
+      labels:
+        job: apiserver
+        long: 12h
+        severity: warning
+        short: 1h
+        slo: apiserver-read-resource-request-latency
+    - alert: ErrorBudgetBurn
+      expr: apiserver_request_duration_seconds:burnrate3h{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (1 * (1-0.99)) and apiserver_request_duration_seconds:burnrate2d{job="apiserver",scope=~"resource|",slo="apiserver-read-resource-request-latency",verb=~"LIST|GET"}
+        > (1 * (1-0.99))
+      for: 1h30m
+      labels:
+        job: apiserver
+        long: 2d
+        severity: warning
+        short: 3h
+        slo: apiserver-read-resource-request-latency

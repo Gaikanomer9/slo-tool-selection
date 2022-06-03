@@ -1,0 +1,130 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  creationTimestamp: "2022-06-03T14:57:10Z"
+  generation: 1
+  labels:
+    prometheus: k8s
+    role: alert-rules
+  name: coredns-request-latency
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: pyrra.dev/v1alpha1
+    controller: true
+    kind: ServiceLevelObjective
+    name: coredns-request-latency
+    uid: ca4a3487-fb7d-4705-8418-f3755a8244d4
+  resourceVersion: "26873"
+  uid: 8a748ef5-60f4-4c9b-b438-ee875f0dca81
+spec:
+  groups:
+  - interval: 1m30s
+    name: coredns-request-latency-increase
+    rules:
+    - expr: sum(increase(coredns_dns_request_duration_seconds_count{job="coredns"}[2w]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:increase2w
+    - expr: sum(increase(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[2w]))
+      labels:
+        job: coredns
+        le: "0.032"
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:increase2w
+  - interval: 30s
+    name: coredns-request-latency
+    rules:
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[3m]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[3m])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[3m]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate3m
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[15m]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[15m])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[15m]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate15m
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[30m]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[30m])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[30m]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate30m
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[1h]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[1h])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[1h]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate1h
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[3h]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[3h])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[3h]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate3h
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[12h]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[12h])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[12h]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate12h
+    - expr: (sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[2d]))
+        - sum(rate(coredns_dns_request_duration_seconds_bucket{job="coredns",le="0.032"}[2d])))
+        / sum(rate(coredns_dns_request_duration_seconds_count{job="coredns"}[2d]))
+      labels:
+        job: coredns
+        slo: coredns-request-latency
+      record: coredns_dns_request_duration_seconds:burnrate2d
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_request_duration_seconds:burnrate3m{job="coredns",slo="coredns-request-latency"}
+        > (14 * (1-0.99)) and coredns_dns_request_duration_seconds:burnrate30m{job="coredns",slo="coredns-request-latency"}
+        > (14 * (1-0.99))
+      for: 1m
+      labels:
+        job: coredns
+        long: 30m
+        severity: critical
+        short: 3m
+        slo: coredns-request-latency
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_request_duration_seconds:burnrate15m{job="coredns",slo="coredns-request-latency"}
+        > (7 * (1-0.99)) and coredns_dns_request_duration_seconds:burnrate3h{job="coredns",slo="coredns-request-latency"}
+        > (7 * (1-0.99))
+      for: 8m
+      labels:
+        job: coredns
+        long: 3h
+        severity: critical
+        short: 15m
+        slo: coredns-request-latency
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_request_duration_seconds:burnrate1h{job="coredns",slo="coredns-request-latency"}
+        > (2 * (1-0.99)) and coredns_dns_request_duration_seconds:burnrate12h{job="coredns",slo="coredns-request-latency"}
+        > (2 * (1-0.99))
+      for: 30m
+      labels:
+        job: coredns
+        long: 12h
+        severity: warning
+        short: 1h
+        slo: coredns-request-latency
+    - alert: ErrorBudgetBurn
+      expr: coredns_dns_request_duration_seconds:burnrate3h{job="coredns",slo="coredns-request-latency"}
+        > (1 * (1-0.99)) and coredns_dns_request_duration_seconds:burnrate2d{job="coredns",slo="coredns-request-latency"}
+        > (1 * (1-0.99))
+      for: 1h30m
+      labels:
+        job: coredns
+        long: 2d
+        severity: warning
+        short: 3h
+        slo: coredns-request-latency

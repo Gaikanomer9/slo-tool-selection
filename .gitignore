@@ -3,5 +3,7 @@
 observatorium/
 kube-prometheus/
 prometheus-operator/
-pyrra/
-sloth/
+/sloth
+/pyrra
+/slogen
+/slo-libsonnet
